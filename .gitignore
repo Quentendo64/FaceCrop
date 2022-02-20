@@ -1,5 +1,7 @@
+.vscode
 input/*
 !input/.gitkeep
 output/*
 !output/.gitkeep
 *.log
+README.pdf

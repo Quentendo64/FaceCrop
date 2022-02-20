@@ -6,6 +6,7 @@
 # version ='0.1'
 # ---------------------------------------------------------------------------
 """ Automatically crop faces out of pictures based on OpenCV """
+
 # ---------------------------------------------------------------------------
 # Imports
 # ---------------------------------------------------------------------------
@@ -15,33 +16,66 @@ import logging
 import argparse
 import re
 import os
+
+# ---------------------------------------------------------------------------
+# Arguments
+# ---------------------------------------------------------------------------
+
 parser = argparse.ArgumentParser(
-    description="Use --takefirst for only process first face in file")
-parser.add_argument('-t', '--takefirst',  action='store_true',
-                    help="Only process the first face in file")
-parser.add_argument('-l', '--log',  action='store_true',
-                    help="Write a logfile")
-parser.add_argument('-v', '--verbose', action='store_true',
-                    help="Increase output verbosity in the logfile")
-parser.add_argument("x", type=int, default=300, nargs='?',
-                    const=1, help="Move the X-Axis as pixel")
-parser.add_argument("y", type=int, default=300, nargs='?',
-                    const=1, help="Move the Y-Axis as pixel")
-parser.add_argument("w", type=int, default=600, nargs='?',
-                    const=1, help="Set the Width of crop as pixel")
-parser.add_argument("h", type=int, default=600, nargs='?',
-                    const=1, help="Set the Height of crop as pixel")
+    description="use --takefirst for only process first face in file")
+parser.add_argument('-t',
+                    '--takefirst',
+                    action='store_true',
+                    help="only process the first face in file")
+parser.add_argument('-l', '--log', action='store_true', help="write a logfile")
+parser.add_argument('-v',
+                    '--verbose',
+                    action='store_true',
+                    help="increase output verbosity in the logfile")
+parser.add_argument("x",
+                    type=int,
+                    default=300,
+                    nargs='?',
+                    const=1,
+                    help="move the X-Axis as pixel (Default: 300px)")
+parser.add_argument("y",
+                    type=int,
+                    default=300,
+                    nargs='?',
+                    const=1,
+                    help="move the Y-Axis as pixel (Default: 300px)")
+parser.add_argument("w",
+                    type=int,
+                    default=600,
+                    nargs='?',
+                    const=1,
+                    help="set the Width of crop as pixel (Default: 600px)")
+parser.add_argument("h",
+                    type=int,
+                    default=600,
+                    nargs='?',
+                    const=1,
+                    help="set the Height of crop as pixel (Default: 600px)")
 args = parser.parse_args()
+
+# ---------------------------------------------------------------------------
+# Logging
+# ---------------------------------------------------------------------------
+
 if (args.log == True):
     if (args.verbose == True):
         logging.basicConfig(filename='facecrop.log', level=logging.DEBUG)
     else:
         logging.basicConfig(filename='facecrop.log', level=logging.INFO)
+
+# ---------------------------------------------------------------------------
+# Defaults
+# ---------------------------------------------------------------------------
+
 inputDirectory = 'input'
 outputDirectory = 'output'
 logging.debug('The Input directory is: ' + inputDirectory)
 logging.debug('The Output directory is: ' + outputDirectory)
-
 
 # ---------------------------------------------------------------------------
 # Functions
@@ -49,7 +83,12 @@ logging.debug('The Output directory is: ' + outputDirectory)
 
 
 def return_supported_filetypes(inputDirectory):
-    return ["{}/{}".format(dirpath, filename) for dirpath, _, filenames in os.walk(inputDirectory) for filename in filenames if re.match(r'^.*\.(?:jpg|jpeg|png)$', filename)]
+    return [
+        "{}/{}".format(dirpath, filename)
+        for dirpath, _, filenames in os.walk(inputDirectory)
+        for filename in filenames
+        if re.match(r'^.*\.(?:jpg|jpeg|png)$', filename)
+    ]
 
 
 def processSingle(faces):
@@ -58,7 +97,7 @@ def processSingle(faces):
     """
     index = 1
     for (x, y, w, h) in faces:
-        if(index == 1):
+        if (index == 1):
             count = f'{index:02d}'
             logging.debug('Count is: ' + count)
             logging.debug('INTCount is: ')
@@ -78,8 +117,8 @@ def processSingle(faces):
             logging.debug('h')
             logging.debug(h)
             crop = img[y:y + h, x:x + w]
-            logging.info(outputDirectory + '/' +
-                         fileName + '_' + count + '.jpg')
+            logging.info(outputDirectory + '/' + fileName + '_' + count +
+                         '.jpg')
             cv2.imwrite(outputDirectory + '/' + fileName + '.jpg', crop)
             index += 1
             logging.debug(index)
@@ -111,8 +150,8 @@ def processAll(faces):
         logging.debug(h)
         crop = img[y:y + h, x:x + w]
         logging.info(outputDirectory + '/' + fileName + '_' + count + '.jpg')
-        cv2.imwrite(outputDirectory + '/' + fileName +
-                    '_' + count + '.jpg', crop)
+        cv2.imwrite(outputDirectory + '/' + fileName + '_' + count + '.jpg',
+                    crop)
         index += 1
         logging.debug(index)
 
@@ -120,9 +159,8 @@ def processAll(faces):
 for file in return_supported_filetypes(inputDirectory):
     print(file)
 
-
 # ---------------------------------------------------------------------------
-# Here we go
+# Here we go - Here the magic happens
 # ---------------------------------------------------------------------------
 
 for file in return_supported_filetypes(inputDirectory):
@@ -144,7 +182,8 @@ for file in return_supported_filetypes(inputDirectory):
     if (faceCount > 1):
         if (args.takefirst == True):
             logging.debug(
-                '--takefirst / -t is active -- will only process first face in file: ' + file)
+                '--takefirst / -t is active -- will only process first face in file: '
+                + file)
             processSingle(faces)
         else:
             processAll(faces)
