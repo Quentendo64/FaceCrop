@@ -61,8 +61,8 @@ Running this mode on single person pictures results sometimes in additional fals
 ```
 python3 facecrop.py
 ```
-##### Process all faces find in picture
-Running this mode on single person pictures results sometimes in additional false/positive cropped pictures.
+##### Process all faces find in picture and show output
+Running with --show will open the output as preview
 ```
 python3 facecrop.py --show
 ```
@@ -111,3 +111,14 @@ python3 facecrop.py --takefirst 500 400 0 700
 ![example01-input.jpg](EXAMPLE/example01-input.jpg)
 #### Output:
 ![example04-output.jpg](EXAMPLE/example04-output.jpg)
+
+## Example 05:
+Photo by <a href="https://unsplash.com/@rafaelladiniz?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Rafaella Mendes Diniz</a> on <a href="https://unsplash.com/s/photos/people?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a>
+#### **Command**:
+```
+python3 facecrop.py --takefirst --fixed 100 100
+```
+#### Input:
+![example02-input.jpg](EXAMPLE/example02-input.jpg)
+#### Output:
+![example05-output.jpg](EXAMPLE/example05-output.jpg)

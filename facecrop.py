@@ -150,7 +150,7 @@ def cropFaces(x, y, w, h, file):
     return crop
 
 
-def resizeOutput(px, percentage, picture):
+def resizeOutput(picture):
     """
     Resize picture based on pixels or percentage. Return: resized picture
     """
@@ -167,7 +167,7 @@ def resizeOutput(px, percentage, picture):
         logging.debug('Resized Dimensions : ', resizedImage.shape)
         return resizedImage
     if (args.px):
-        logging.debug('Resizeing to: ' + str(args.px[0]) + 'x' + args.px[1])
+        logging.debug('Resizeing to: ' + str(args.px[0]) + 'x' + str(args.px[1]))
         logging.debug('Original Dimensions : ', picture.shape)
         resolution = args.px[0], args.px[1]
         resizedImage = cv2.resize(
