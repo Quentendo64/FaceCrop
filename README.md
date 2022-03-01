@@ -1,11 +1,6 @@
 # FaceCrop
 
-Automatically crop faces out of pictures.
-**My usecase:** for automatically crop employee-photos to a square for automated IT processing.
-
-### ToDo's:
-- [x] Add function for only process first found face in picture
-- [ ] Find & Test other OpenCV cascades for face recognition to reduce false detections.
+Automatically crop faces out of pictures bunch of pictures.
 
 ## Installation:
 - _Tested with Python **3.9.7** on MacOS Montery_
@@ -24,21 +19,36 @@ pip3 install -r requirements.txt
 
 ## Script Arguments
 ```
-usage: facecrop.py [-h] [-t] [-l] [-v] [x] [y] [w] [h]
+usage: facecrop.py [-h] [--version] [-t] [-s] [-l] [-c] [-v] [-p PERCENTAGE | -f PX PX] [x] [y] [w] [h]
 
-use --takefirst for only process first face in file
-
-positional arguments:
-  x                move the X-Axis as pixel (Default: 300px)
-  y                move the Y-Axis as pixel (Default: 300px)
-  w                set the Width of crop as pixel (Default: 600px)
-  h                set the Height of crop as pixel (Default: 600px)
+Automated face detection and out-file cropping
 
 options:
-  -h, --help       show this help message and exit
-  -t, --takefirst  only process the first face in file
-  -l, --log        write a logfile
-  -v, --verbose    increase output verbosity in the logfile
+  -h, --help            show this help message and exit
+  --version             show program's version number and exit
+
+processing:
+  -t, --takefirst       only process the first face in file
+  -s, --show            show the process output
+
+log configuration:
+  -l, --log             write a logfile
+  -c, --console         logging in console
+  -v, --verbose         increase output verbosity in the logfile
+
+resize the output files:
+  -p PERCENTAGE, --percentage PERCENTAGE
+                        resize the output image size resolution in percentage
+  -f PX PX, --fixed PX PX
+                        resize the output image size resolution to a fixed px resolution
+
+set the cropping coordinates:
+  x                     move the X-Axis as pixel (Default: 300px)
+  y                     move the Y-Axis as pixel (Default: 300px)
+  w                     set the Width of crop as pixel (Default: 600px)
+  h                     set the Height of crop as pixel (Default: 600px)
+
+Have fun! And play around with the coordinates
   ```
 ##### Process only first face find in a picture
 When you know that there is only one person on the source picture.
@@ -54,7 +64,7 @@ python3 facecrop.py
 ##### Process all faces find in picture
 Running this mode on single person pictures results sometimes in additional false/positive cropped pictures.
 ```
-python3 facecrop.py
+python3 facecrop.py --show
 ```
 ## Example 01:
 Photo by <a href="https://unsplash.com/@brokenlenscap?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Ben Parker</a> on <a href="https://unsplash.com/s/photos/people?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a>
