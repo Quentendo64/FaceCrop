@@ -19,13 +19,26 @@ pip3 install -r requirements.txt
 
 ## Script Arguments
 ```
-usage: facecrop.py [-h] [--version] [-t] [-s] [-l] [-c] [-v] [-p PERCENTAGE | -f PX PX] [x] [y] [w] [h]
+usage: facecrop.py [-h] [--version] [-i INPUTDIRECTORY] [-o OUTPUTDIRECTORY] [-lp LOGDIRECTORY] [-cp CASCADEPATH] [-cf CASCADEFILE] [-ac] [-t] [-s] [-l] [-c] [-v] [-p PERCENTAGE | -f PX PX] [x] [y] [w] [h]
 
 Automated face detection and out-file cropping
 
 options:
   -h, --help            show this help message and exit
   --version             show program's version number and exit
+
+set path for the input/output files:
+  -i INPUTDIRECTORY, --input INPUTDIRECTORY
+                        set the input folder (Default: %ScriptDirectory%/input)
+  -o OUTPUTDIRECTORY, --output OUTPUTDIRECTORY
+                        set the output folder (Default: %ScriptDirectory%/output)
+  -lp LOGDIRECTORY, --logpath LOGDIRECTORY
+                        set the logfile folder (Default: %ScriptDirectory%)
+  -cp CASCADEPATH, --cascadePath CASCADEPATH
+                        set the cascade file folder (Default: %ScriptDirectory%/cascade_files)
+  -cf CASCADEFILE, --cascadeFile CASCADEFILE
+                        set the filename of the cascade (Default: haarcascade_frontalface_alt2.xml)
+  -ac, --addCascade     add the cascadeFileName in the output filename (Default: haarcascade_frontalface_alt2.xml)
 
 processing:
   -t, --takefirst       only process the first face in file
@@ -60,6 +73,16 @@ python3 facecrop.py --takefirst
 Running this mode on single person pictures results sometimes in additional false/positive cropped pictures.
 ```
 python3 facecrop.py
+```
+##### Process all faces with custom input/output folder
+Process all pictures in "C:\Temp\Pictures" and save results in "C:\Temp\Pictures Output"
+```
+python3 facecrop.py -i "C:\Temp\Pictures" -o "C:\Temp\Pictures Output"
+```
+##### Process all pictures with different cascade file 
+Process all pictures with cascade file "haarcascade_frontalface_default.xml" + add cascade filename to output filename for better comparison of different cascade files
+```
+python3 facecrop.py -ac -cf "haarcascade_frontalface_default.xml"
 ```
 ##### Process all faces find in picture and show output
 Running with --show will open the output as preview

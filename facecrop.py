@@ -3,10 +3,12 @@
 # ----------------------------------------------------------------------------
 # Created By  : Quentin Wohlfeil (https://gitlab.com/Quentendo64)
 # Created Date: 08.02.2022
-# version ='0.2'
+# Modify Date: 20.05.2022
+version = '0.3.0'
+
+
 # ---------------------------------------------------------------------------
 """ Automatically crop faces out of pictures based on OpenCV """
-
 # ---------------------------------------------------------------------------
 # Imports
 # ---------------------------------------------------------------------------
@@ -18,6 +20,11 @@ import re
 import os
 
 # ---------------------------------------------------------------------------
+# Script Variables
+# ---------------------------------------------------------------------------
+scriptDirectory = os.path.dirname(os.path.abspath(__file__))
+
+# ---------------------------------------------------------------------------
 # Arguments
 # ---------------------------------------------------------------------------
 
@@ -25,8 +32,50 @@ parser = argparse.ArgumentParser(
     prog='facecrop.py',
     description='Automated face detection and out-file cropping',
     epilog='Have fun! And play around with the coordinates')
-parser.add_argument('--version', action='version', version='%(prog)s 0.2')
-
+parser.add_argument('--version',
+                    action='version',
+                    version='%(prog)s ' + version)
+ioPath = parser.add_argument_group(title='set path for the input/output files')
+ioPath.add_argument("-i",
+                    "--input",
+                    default=scriptDirectory + '/input',
+                    dest='inputDirectory',
+                    help="set the input folder (Default: " + scriptDirectory +
+                    "/input)")
+ioPath.add_argument("-o",
+                    "--output",
+                    default=scriptDirectory + '/output',
+                    dest='outputDirectory',
+                    help="set the output folder (Default: " + scriptDirectory +
+                    "/output)")
+ioPath.add_argument("-lp",
+                    "--logpath",
+                    default=scriptDirectory,
+                    dest='logDirectory',
+                    help="set the logfile folder (Default: " +
+                    scriptDirectory + ")")
+ioPath.add_argument("-cp",
+                    "--cascadePath",
+                    default=scriptDirectory + '/cascade_files',
+                    dest='cascadePath',
+                    help="set the cascade file folder (Default: " +
+                    scriptDirectory + "/cascade_files)")
+ioPath.add_argument(
+    "-cf",
+    "--cascadeFile",
+    default='haarcascade_frontalface_alt2.xml',
+    dest='cascadeFile',
+    help=
+    "set the filename of the cascade (Default: haarcascade_frontalface_alt2.xml)"
+)
+ioPath.add_argument(
+    "-ac",
+    "--addCascade",
+    dest='addCascade',
+    action='store_true',
+    help=
+    "add the cascadeFileName in the output filename (Default: haarcascade_frontalface_alt2.xml)"
+)
 processing = parser.add_argument_group(title='processing')
 processing.add_argument('-t',
                         '--takefirst',
@@ -39,18 +88,36 @@ processing.add_argument('-s',
                         help="show the process output")
 
 logs = parser.add_argument_group(title='log configuration')
-logs.add_argument('-l', '--log', dest='log',
-                  action='store_true', help="write a logfile")
-logs.add_argument('-c', '--console', dest='console',
-                  action='store_true', help="logging in console")
-logs.add_argument('-v', '--verbose', action='store_true',
+logs.add_argument('-l',
+                  '--log',
+                  dest='log',
+                  action='store_true',
+                  help="write a logfile")
+logs.add_argument('-c',
+                  '--console',
+                  dest='console',
+                  action='store_true',
+                  help="logging in console")
+logs.add_argument('-v',
+                  '--verbose',
+                  action='store_true',
                   help="increase output verbosity in the logfile")
+
 resizeing = parser.add_argument_group(title='resize the output files')
 resizeingMutal = resizeing.add_mutually_exclusive_group()
-resizeingMutal.add_argument("-p", "--percentage", type=int, dest='percentage',
-                            help="resize the output image size resolution in percentage")
-resizeingMutal.add_argument("-f", "--fixed", type=int, nargs=2, dest='px',
-                            help='resize the output image size resolution to a fixed px resolution')
+resizeingMutal.add_argument(
+    "-p",
+    "--percentage",
+    type=int,
+    dest='percentage',
+    help="resize the output image size resolution in percentage")
+resizeingMutal.add_argument(
+    "-f",
+    "--fixed",
+    type=int,
+    nargs=2,
+    dest='px',
+    help='resize the output image size resolution to a fixed px resolution')
 cropping = parser.add_argument_group(title='set the cropping coordinates')
 cropping.add_argument("x",
                       type=int,
@@ -64,19 +131,30 @@ cropping.add_argument("y",
                       nargs='?',
                       const=1,
                       help="move the Y-Axis as pixel (Default: %(default)spx)")
-cropping.add_argument("w",
-                      type=int,
-                      default=600,
-                      nargs='?',
-                      const=1,
-                      help="set the Width of crop as pixel (Default: %(default)spx)")
-cropping.add_argument("h",
-                      type=int,
-                      default=600,
-                      nargs='?',
-                      const=1,
-                      help="set the Height of crop as pixel (Default: %(default)spx)")
+cropping.add_argument(
+    "w",
+    type=int,
+    default=600,
+    nargs='?',
+    const=1,
+    help="set the Width of crop as pixel (Default: %(default)spx)")
+cropping.add_argument(
+    "h",
+    type=int,
+    default=600,
+    nargs='?',
+    const=1,
+    help="set the Height of crop as pixel (Default: %(default)spx)")
 args = parser.parse_args()
+
+# ---------------------------------------------------------------------------
+# Defaults
+# ---------------------------------------------------------------------------
+
+inputDirectory = args.inputDirectory
+outputDirectory = args.outputDirectory
+logDirectory = args.logDirectory
+cascadeFile = args.cascadePath + "/" + args.cascadeFile
 
 # ---------------------------------------------------------------------------
 # Logging
@@ -84,7 +162,8 @@ args = parser.parse_args()
 
 if (args.console) or (args.log):
     logFormat = logging.Formatter(
-        '%(asctime)s - %(levelname)s - %(threadName)s - %(name)s - %(message)s')
+        '%(asctime)s - %(levelname)s - %(threadName)s - %(name)s - %(message)s'
+    )
 
     if (args.verbose):
         loggerConfig = logging.getLogger('').setLevel(logging.DEBUG)
@@ -99,24 +178,22 @@ if (args.console) or (args.log):
         logger.addHandler(console)
 
     if (args.log):
-        logfile = logging.FileHandler(
-            'facecrop.log', mode='w', encoding="utf-8")
+        logfile = logging.FileHandler(logDirectory + 'facecrop.log',
+                                      mode='w',
+                                      encoding="utf-8")
         logfile.setFormatter(logFormat)
         if (args.verbose):
             logfile.setLevel(logging.DEBUG)
         logger.addHandler(logfile)
 
-
 # ---------------------------------------------------------------------------
-# Defaults
+# Debug Output
 # ---------------------------------------------------------------------------
-
-inputDirectory = 'input'
-outputDirectory = 'output'
-cascadeFile = 'cascade_files/haarcascade_frontalface_alt2.xml'
 
 logging.debug('The Input directory is: ' + inputDirectory)
 logging.debug('The Output directory is: ' + outputDirectory)
+logging.debug('The Log directory is: ' + logDirectory)
+logging.debug('The Cascade file is: ' + cascadeFile)
 
 # ---------------------------------------------------------------------------
 # Functions
@@ -140,8 +217,8 @@ def cropFaces(x, y, w, h, file):
     Cropping out based on coordinates. Return: cropped picture
     """
     img = cv2.imread(file)
-    logging.debug('Cropping coordinates: X: '+str(x)+'Y: ' +
-                  str(y)+'W: ' + str(w)+'H: ' + str(h))
+    logging.debug('Cropping coordinates: X: ' + str(x) + 'Y: ' + str(y) +
+                  'W: ' + str(w) + 'H: ' + str(h))
     x = x - args.x
     y = y - args.y
     w = w + args.w
@@ -156,22 +233,25 @@ def resizeOutput(picture):
     """
     logging.info('Resizeing Item')
     if (args.percentage):
-        logging.debug('Resizeing to: ' + str(args.percentage) +
-                      '%' + ' of the original')
+        logging.debug('Resizeing to: ' + str(args.percentage) + '%' +
+                      ' of the original')
         logging.debug('Original Dimensions : ', picture.shape)
         width = int(picture.shape[1] * args.percentage / 100)
         height = int(picture.shape[0] * args.percentage / 100)
         resolution = (width, height)
-        resizedImage = cv2.resize(
-            picture, resolution, interpolation=cv2.INTER_LINEAR)
+        resizedImage = cv2.resize(picture,
+                                  resolution,
+                                  interpolation=cv2.INTER_LINEAR)
         logging.debug('Resized Dimensions : ', resizedImage.shape)
         return resizedImage
     if (args.px):
-        logging.debug('Resizeing to: ' + str(args.px[0]) + 'x' + str(args.px[1]))
+        logging.debug('Resizeing to: ' + str(args.px[0]) + 'x' +
+                      str(args.px[1]))
         logging.debug('Original Dimensions : ', picture.shape)
         resolution = args.px[0], args.px[1]
-        resizedImage = cv2.resize(
-            picture, resolution, interpolation=cv2.INTER_LINEAR)
+        resizedImage = cv2.resize(picture,
+                                  resolution,
+                                  interpolation=cv2.INTER_LINEAR)
         logging.debug('Resized Dimensions : ', resizedImage.shape)
         return resizedImage
 
@@ -180,7 +260,7 @@ def saveOutput(path, file):
     """
     Save file to disk
     """
-    logging.info('Saving Item:'+path)
+    logging.info('Saving Item:' + path)
     cv2.imwrite(path, file)
     return file
 
@@ -207,11 +287,11 @@ def faceRecognition(file):
     Recognise faces based on cascade files. Return: face coordinates
     """
     logging.debug('Face recognition')
-    if(isinstance(file, str)):
+    if (isinstance(file, str)):
         file = cv2.imread(file)
     cv2.CascadeClassifier(cascadeFile)
-    coordinates = cv2.CascadeClassifier(
-        cascadeFile).detectMultiScale(file, 1.1, 4)
+    coordinates = cv2.CascadeClassifier(cascadeFile).detectMultiScale(
+        file, 1.1, 4)
     logging.debug('Found coordinates')
     logging.debug(coordinates)
     return coordinates
@@ -231,8 +311,14 @@ def main():
             logging.debug('Using coordinates: ' + str(coordinates[0]))
         for (x, y, w, h) in coordinates:
             count = f'{index:02d}'
-            fullFilePath = outputDirectory + '/' + fileName + '_' + count + '.jpg'
             cropped = cropFaces(x, y, w, h, file)
+
+            if (args.addCascade):
+                cascadeFileName = os.path.basename(cascadeFile).split('.')[0]
+                fullFilePath = outputDirectory + '/' + fileName + '_' + cascadeFileName + '_'+ count + '.jpg'
+            else:
+                fullFilePath = outputDirectory + '/' + fileName + '_' + count + '.jpg'
+
             if (args.percentage) or (args.px):
                 logging.debug('Resize parameter set')
                 output = saveOutput(fullFilePath, resizeOutput(cropped))
@@ -241,7 +327,7 @@ def main():
                 logging.debug('No resizing')
                 output = saveOutput(fullFilePath, cropped)
 
-            if(args.showOutput):
+            if (args.showOutput):
                 logging.debug('Show Output')
                 cv2.imshow(fileName + '_' + count, output)
                 if (index == len(coordinates)):
